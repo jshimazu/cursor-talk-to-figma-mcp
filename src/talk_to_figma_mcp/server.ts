@@ -1343,17 +1343,19 @@ server.tool(
 // Create Component Instance Tool
 server.tool(
   "create_component_instance",
-  "Create an instance of a component in Figma",
+  "Create an instance of a component in Figma. Use componentId for local components, componentKey for published/remote components.",
   {
-    componentKey: z.string().describe("Key of the component to instantiate"),
+    componentKey: z.string().optional().describe("Key of the component to instantiate (for published/remote components)"),
+    componentId: z.string().optional().describe("Node ID of a local component to instantiate (e.g., '7746:27517')"),
     x: z.number().describe("X position"),
     y: z.number().describe("Y position"),
     parentId: z.string().optional().describe("Optional parent node ID to append the instance to"),
   },
-  async ({ componentKey, x, y, parentId }: any) => {
+  async ({ componentKey, componentId, x, y, parentId }: any) => {
     try {
       const result = await sendCommandToFigma("create_component_instance", {
         componentKey,
+        componentId,
         x,
         y,
         parentId,

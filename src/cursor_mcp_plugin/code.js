@@ -1178,14 +1178,25 @@ async function getLocalComponents() {
 // }
 
 async function createComponentInstance(params) {
-  const { componentKey, x = 0, y = 0, parentId } = params || {};
+  const { componentKey, componentId, x = 0, y = 0, parentId } = params || {};
 
-  if (!componentKey) {
-    throw new Error("Missing componentKey parameter");
+  if (!componentKey && !componentId) {
+    throw new Error("Missing componentKey or componentId parameter");
   }
 
   try {
-    const component = await figma.importComponentByKeyAsync(componentKey);
+    let component;
+    if (componentId) {
+      // Local component: get by node ID directly
+      const node = await figma.getNodeByIdAsync(componentId);
+      if (!node || node.type !== "COMPONENT") {
+        throw new Error(`Node ${componentId} is not a component`);
+      }
+      component = node;
+    } else {
+      // Published/remote component: import by key
+      component = await figma.importComponentByKeyAsync(componentKey);
+    }
     const instance = component.createInstance();
 
     instance.x = x;
