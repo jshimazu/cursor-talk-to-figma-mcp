@@ -1178,7 +1178,7 @@ async function getLocalComponents() {
 // }
 
 async function createComponentInstance(params) {
-  const { componentKey, x = 0, y = 0 } = params || {};
+  const { componentKey, x = 0, y = 0, parentId } = params || {};
 
   if (!componentKey) {
     throw new Error("Missing componentKey parameter");
@@ -1191,7 +1191,16 @@ async function createComponentInstance(params) {
     instance.x = x;
     instance.y = y;
 
-    figma.currentPage.appendChild(instance);
+    if (parentId) {
+      const parent = await figma.getNodeByIdAsync(parentId);
+      if (parent && "appendChild" in parent) {
+        parent.appendChild(instance);
+      } else {
+        figma.currentPage.appendChild(instance);
+      }
+    } else {
+      figma.currentPage.appendChild(instance);
+    }
 
     return {
       id: instance.id,
