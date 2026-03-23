@@ -247,6 +247,8 @@ async function handleCommand(command, params) {
       return await bindVariable(params);
     case "create_component_from_node":
       return await createComponentFromNode(params);
+    case "combine_as_variants":
+      return await combineAsVariants(params);
     default:
       throw new Error(`Unknown command: ${command}`);
   }
@@ -1733,6 +1735,44 @@ async function createComponentFromNode(params) {
     name: component.name,
     key: component.key,
     type: component.type
+  };
+}
+
+// --- combineAsVariants: Combine multiple components into a Component Set (variants) ---
+async function combineAsVariants(params) {
+  const { componentIds, variantNames } = params || {};
+  if (!componentIds || !Array.isArray(componentIds) || componentIds.length === 0) {
+    throw new Error("Missing or empty componentIds array");
+  }
+
+  const components = [];
+  for (const id of componentIds) {
+    const node = await figma.getNodeByIdAsync(id);
+    if (!node) throw new Error(`Node not found: ${id}`);
+    if (node.type !== "COMPONENT") throw new Error(`Node ${id} is not a COMPONENT, got: ${node.type}`);
+    components.push(node);
+  }
+
+  // Rename components with variant property names if provided
+  if (variantNames && Array.isArray(variantNames) && variantNames.length === components.length) {
+    for (let i = 0; i < components.length; i++) {
+      components[i].name = variantNames[i];
+    }
+  }
+
+  const parent = components[0].parent || figma.currentPage;
+  const componentSet = figma.combineAsVariants(components, parent);
+
+  return {
+    id: componentSet.id,
+    name: componentSet.name,
+    key: componentSet.key,
+    type: componentSet.type,
+    children: componentSet.children.map(c => ({
+      id: c.id,
+      name: c.name,
+      type: c.type
+    }))
   };
 }
 

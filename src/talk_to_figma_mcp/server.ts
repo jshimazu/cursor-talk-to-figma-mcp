@@ -2940,6 +2940,40 @@ server.tool(
   }
 );
 
+server.tool(
+  "combine_as_variants",
+  "Combine multiple Figma components into a Component Set (variants). Renames each component with variant property names before combining. Example variantNames: ['type=error', 'type=alert']",
+  {
+    componentIds: z.array(z.string()).describe("Array of component node IDs to combine"),
+    variantNames: z.array(z.string()).optional().describe("Array of variant names in 'Property=Value' format, matching the order of componentIds. Example: ['type=error', 'type=alert']"),
+  },
+  async ({ componentIds, variantNames }: any) => {
+    try {
+      const result = await sendCommandToFigma("combine_as_variants", {
+        componentIds,
+        variantNames,
+      });
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Combined as variants: ${JSON.stringify(result, null, 2)}`
+          }
+        ]
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error combining variants: ${error instanceof Error ? error.message : String(error)}`
+          }
+        ]
+      };
+    }
+  }
+);
+
 // Define command types and parameters
 type FigmaCommand =
   | "get_document_info"
@@ -2989,7 +3023,8 @@ type FigmaCommand =
   | "create_variable"
   | "set_variable_value"
   | "bind_variable"
-  | "create_component_from_node";
+  | "create_component_from_node"
+  | "combine_as_variants";
 
 // Define the parameters for each command
 type CommandParams = {
@@ -3188,6 +3223,10 @@ type CommandParams = {
   };
   create_component_from_node: {
     nodeId: string;
+  };
+  combine_as_variants: {
+    componentIds: string[];
+    variantNames?: string[];
   };
 };
 
