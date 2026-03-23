@@ -245,6 +245,8 @@ async function handleCommand(command, params) {
       return await getNodePaints(params);
     case "bind_variable":
       return await bindVariable(params);
+    case "create_component_from_node":
+      return await createComponentFromNode(params);
     default:
       throw new Error(`Unknown command: ${command}`);
   }
@@ -1690,6 +1692,27 @@ async function bindVariable(params) {
     field: field,
     variableId: variableId,
     variableName: variable.name
+  };
+}
+
+// --- createComponentFromNode: Convert a frame to a component ---
+async function createComponentFromNode(params) {
+  const { nodeId } = params || {};
+  if (!nodeId) throw new Error("Missing nodeId parameter");
+
+  const node = await figma.getNodeByIdAsync(nodeId);
+  if (!node) throw new Error(`Node not found: ${nodeId}`);
+  if (node.type !== "FRAME" && node.type !== "GROUP") {
+    throw new Error(`Node must be a FRAME or GROUP, got: ${node.type}`);
+  }
+
+  const component = figma.createComponentFromNode(node);
+
+  return {
+    id: component.id,
+    name: component.name,
+    key: component.key,
+    type: component.type
   };
 }
 

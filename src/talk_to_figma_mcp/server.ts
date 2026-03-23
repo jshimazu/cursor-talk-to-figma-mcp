@@ -2906,6 +2906,36 @@ server.tool(
   }
 );
 
+server.tool(
+  "create_component_from_node",
+  "Convert a frame or group into a reusable Figma component. Returns the component id, name, and key.",
+  {
+    nodeId: z.string().describe("The ID of the frame or group to convert into a component"),
+  },
+  async ({ nodeId }: any) => {
+    try {
+      const result = await sendCommandToFigma("create_component_from_node", { nodeId });
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Converted to component: ${JSON.stringify(result, null, 2)}`
+          }
+        ]
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error creating component: ${error instanceof Error ? error.message : String(error)}`
+          }
+        ]
+      };
+    }
+  }
+);
+
 // Define command types and parameters
 type FigmaCommand =
   | "get_document_info"
@@ -2954,7 +2984,8 @@ type FigmaCommand =
   | "set_node_paints"
   | "create_variable"
   | "set_variable_value"
-  | "bind_variable";
+  | "bind_variable"
+  | "create_component_from_node";
 
 // Define the parameters for each command
 type CommandParams = {
@@ -3150,6 +3181,9 @@ type CommandParams = {
     nodeId: string;
     field: string;
     variableId: string;
+  };
+  create_component_from_node: {
+    nodeId: string;
   };
 };
 
