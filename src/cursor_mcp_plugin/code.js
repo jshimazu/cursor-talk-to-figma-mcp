@@ -243,6 +243,8 @@ async function handleCommand(command, params) {
       return await setNodePaints(params);
     case "get_node_paints":
       return await getNodePaints(params);
+    case "bind_variable":
+      return await bindVariable(params);
     default:
       throw new Error(`Unknown command: ${command}`);
   }
@@ -1664,6 +1666,30 @@ async function getNodePaints(params) {
     id: node.id,
     name: node.name,
     [paintsType]: node[paintsType],
+  };
+}
+
+// --- bindVariable: Bind a variable to a node property (fontSize, cornerRadius, padding, etc.) ---
+async function bindVariable(params) {
+  const { nodeId, field, variableId } = params || {};
+  if (!nodeId) throw new Error("Missing nodeId parameter");
+  if (!field) throw new Error("Missing field parameter");
+  if (!variableId) throw new Error("Missing variableId parameter");
+
+  const node = await figma.getNodeByIdAsync(nodeId);
+  if (!node) throw new Error(`Node not found: ${nodeId}`);
+
+  const variable = await figma.variables.getVariableByIdAsync(variableId);
+  if (!variable) throw new Error(`Variable not found: ${variableId}`);
+
+  node.setBoundVariable(field, variable);
+
+  return {
+    id: node.id,
+    name: node.name,
+    field: field,
+    variableId: variableId,
+    variableName: variable.name
   };
 }
 

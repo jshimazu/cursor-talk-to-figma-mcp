@@ -2870,6 +2870,42 @@ server.tool(
 
 
 
+server.tool(
+  "bind_variable",
+  "Bind a Figma variable to a node property such as fontSize, cornerRadius, paddingLeft, paddingRight, paddingTop, paddingBottom, itemSpacing, width, height, opacity, etc. This uses node.setBoundVariable() under the hood.",
+  {
+    nodeId: z.string().describe("The ID of the node to modify"),
+    field: z.string().describe("The property field to bind (e.g., 'fontSize', 'cornerRadius', 'paddingLeft', 'paddingRight', 'paddingTop', 'paddingBottom', 'itemSpacing', 'width', 'height', 'opacity', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius')"),
+    variableId: z.string().describe("The ID of the variable to bind (e.g., VariableID:7746:27366)")
+  },
+  async ({ nodeId, field, variableId }: any) => {
+    try {
+      const result = await sendCommandToFigma("bind_variable", {
+        nodeId,
+        field,
+        variableId,
+      });
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Bound variable ${variableId} to ${field} on node ${nodeId}. Result: ${JSON.stringify(result, null, 2)}`
+          }
+        ]
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error binding variable: ${error instanceof Error ? error.message : String(error)}`
+          }
+        ]
+      };
+    }
+  }
+);
+
 // Define command types and parameters
 type FigmaCommand =
   | "get_document_info"
@@ -2917,7 +2953,8 @@ type FigmaCommand =
   | "get_node_paints"
   | "set_node_paints"
   | "create_variable"
-  | "set_variable_value";
+  | "set_variable_value"
+  | "bind_variable";
 
 // Define the parameters for each command
 type CommandParams = {
@@ -3108,6 +3145,11 @@ type CommandParams = {
     valueType: "FLOAT" | "STRING" | "BOOLEAN" | "COLOR";
     value?: any; // Value can be of any type depending on the variable type
     variableReferenceId?: string; // Optional reference to another variable
+  };
+  bind_variable: {
+    nodeId: string;
+    field: string;
+    variableId: string;
   };
 };
 
