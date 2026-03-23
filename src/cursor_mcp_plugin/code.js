@@ -249,6 +249,8 @@ async function handleCommand(command, params) {
       return await createComponentFromNode(params);
     case "combine_as_variants":
       return await combineAsVariants(params);
+    case "rename_node":
+      return await renameNode(params);
     default:
       throw new Error(`Unknown command: ${command}`);
   }
@@ -1773,6 +1775,26 @@ async function combineAsVariants(params) {
       name: c.name,
       type: c.type
     }))
+  };
+}
+
+// --- renameNode: Rename any node ---
+async function renameNode(params) {
+  const { nodeId, name } = params || {};
+  if (!nodeId) throw new Error("Missing nodeId parameter");
+  if (!name) throw new Error("Missing name parameter");
+
+  const node = await figma.getNodeByIdAsync(nodeId);
+  if (!node) throw new Error(`Node not found: ${nodeId}`);
+
+  const oldName = node.name;
+  node.name = name;
+
+  return {
+    id: node.id,
+    oldName: oldName,
+    newName: node.name,
+    type: node.type
   };
 }
 

@@ -2974,6 +2974,27 @@ server.tool(
   }
 );
 
+server.tool(
+  "rename_node",
+  "Rename any node in the Figma document.",
+  {
+    nodeId: z.string().describe("The ID of the node to rename"),
+    name: z.string().describe("The new name for the node"),
+  },
+  async ({ nodeId, name }: any) => {
+    try {
+      const result = await sendCommandToFigma("rename_node", { nodeId, name });
+      return {
+        content: [{ type: "text", text: `Renamed: ${JSON.stringify(result)}` }]
+      };
+    } catch (error: any) {
+      return {
+        content: [{ type: "text", text: `Error renaming: ${error instanceof Error ? error.message : String(error)}` }]
+      };
+    }
+  }
+);
+
 // Define command types and parameters
 type FigmaCommand =
   | "get_document_info"
@@ -3024,7 +3045,8 @@ type FigmaCommand =
   | "set_variable_value"
   | "bind_variable"
   | "create_component_from_node"
-  | "combine_as_variants";
+  | "combine_as_variants"
+  | "rename_node";
 
 // Define the parameters for each command
 type CommandParams = {
@@ -3227,6 +3249,10 @@ type CommandParams = {
   combine_as_variants: {
     componentIds: string[];
     variantNames?: string[];
+  };
+  rename_node: {
+    nodeId: string;
+    name: string;
   };
 };
 
